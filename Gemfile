@@ -1,43 +1,3 @@
-source 'https://rubygems.org'
-
-
-ruby '~> 3.3'
-
-# Web framework
-gem 'sinatra', '~> 4.1'
-gem 'sinatra-contrib', '~> 4.1'
-
-
-# Database & ORM
-gem 'activerecord', '~> 8.0'
-gem 'pg', '~> 1.6'
-gem 'rake', '~> 13.0'
-
-# Testing
-gem 'rspec', '~> 3.13'
-gem 'rack-test', '~> 2.2'
-
-# Authentication
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-google-oauth2', '~> 1.2'
-gem 'omniauth-facebook'
-
-#Caching and rate limiting
-gem 'redis', '~> 5.0'
-gem 'rack-attack', '~> 6.7'
-
-# Environment variable management
-gem 'dotenv', '~> 3.1'
-
-# JSON parsing
-gem 'oj', '~> 3.16'
-
-
-group :development, :test do
-  gem 'rubocop', '~> 1.81', require: false
-  gem 'brakeman', '~> 7.1', require: false
-end
-
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
@@ -74,6 +34,17 @@ gem "thruster", require: false
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
+
+# Authentication
+gem 'omniauth', '~> 2.1'
+gem 'omniauth-google-oauth2', '~> 1.2'
+gem 'omniauth-facebook'
+
+# Rate limiting
+gem 'rack-attack', '~> 6.7'
+
+# JSON parsing
+gem 'oj', '~> 3.16'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
