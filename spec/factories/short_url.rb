@@ -1,7 +1,9 @@
 FactoryBot.define do
-    factory :short_url do
-        original_url {Fake::Internet.url}
-        slug {sequence(:slug) { |n| "slug#{n}"}}
-        visits {0}
-    end
+  sequence(:slug) { |n| "slug#{n}" }
+
+  factory :short_url do
+    original_url { Faker::Internet.url }
+    slug { generate(:slug) }
+    visits { 0 }
+  end
 end
