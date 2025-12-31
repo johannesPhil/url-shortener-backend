@@ -41,7 +41,7 @@ gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth-facebook'
 
 # Rate limiting
-gem 'rack-attack', '~> 6.7'
+gem 'rack-attack', '~> 6.8'
 
 # JSON parsing
 gem 'oj', '~> 3.16'
