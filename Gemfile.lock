@@ -118,6 +118,10 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    haml (7.1.0)
+      temple (>= 0.8.2)
+      thor
+      tilt
     hashie (5.0.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
@@ -233,6 +237,11 @@ GEM
     pg (1.6.2-x86_64-linux-musl)
     pp (0.6.3)
       prettyprint
+    prettier (4.0.4)
+      syntax_tree (>= 4.0.1)
+      syntax_tree-haml (>= 2.0.0)
+      syntax_tree-rbs (>= 0.2.0)
+    prettier_print (1.2.1)
     prettyprint (0.2.0)
     prism (1.6.0)
     psych (5.2.6)
@@ -288,6 +297,8 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.1)
+    rbs (3.10.0)
+      logger
     rdoc (6.16.1)
       erb
       psych (>= 4.0.0)
@@ -340,6 +351,10 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
+    ruby-lsp (0.26.4)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 1.2, < 2.0)
+      rbs (>= 3, < 5)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
     shoulda-matchers (7.0.1)
@@ -371,12 +386,24 @@ GEM
       net-ssh (>= 2.8.0)
       ostruct
     stringio (3.1.9)
+    syntax_tree (6.3.0)
+      prettier_print (>= 1.2.0)
+    syntax_tree-haml (4.0.3)
+      haml (>= 5.2)
+      prettier_print (>= 1.2.1)
+      syntax_tree (>= 6.0.0)
+    syntax_tree-rbs (1.0.0)
+      prettier_print
+      rbs
+      syntax_tree (>= 2.0.1)
+    temple (0.10.4)
     thor (1.4.0)
     thruster (0.1.16)
     thruster (0.1.16-aarch64-linux)
     thruster (0.1.16-arm64-darwin)
     thruster (0.1.16-x86_64-darwin)
     thruster (0.1.16-x86_64-linux)
+    tilt (2.6.1)
     timeout (0.4.4)
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -416,11 +443,14 @@ DEPENDENCIES
   omniauth-facebook
   omniauth-google-oauth2 (~> 1.2)
   pg (~> 1.6, >= 1.6.2)
+  prettier (~> 4.0)
   puma (>= 5.0)
   rack-attack (~> 6.7)
   rails (~> 8.0.4)
   rspec-rails (~> 8.0, >= 8.0.2)
+  rubocop
   rubocop-rails-omakase
+  ruby-lsp
   shoulda-matchers (~> 7.0, >= 7.0.1)
   solid_cable
   solid_cache
