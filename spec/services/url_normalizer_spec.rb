@@ -55,17 +55,17 @@ RSpec.describe UrlNormalizer do
       # preserve duplicate keys
       it "alphabetizes query parameter keys" do
         result = UrlNormalizer.call("example.com?b=2&a=1&c=3")
-        expect(result[:query]).to eq([["a", "1"], ["b", "2"], ["c", "3"]])
+        expect(result[:query]).to eq([ [ "a", "1" ], [ "b", "2" ], [ "c", "3" ] ])
         expect(result[:normalized]).to eq("https://example.com?a=1&b=2&c=3")
       end
       it "keeps original case" do
         result = UrlNormalizer.call("example.com?B=2&a=1&C=3")
-        expect(result[:query]).to eq([["a", "1"], ["B", "2"], ["C", "3"]])
+        expect(result[:query]).to eq([ [ "a", "1" ], [ "B", "2" ], [ "C", "3" ] ])
         expect(result[:normalized]).to eq("https://example.com?a=1&B=2&C=3")
       end
       it "preserves duplicate keys" do
         result = UrlNormalizer.call("example.com?a=1&a=2&c=3")
-        expect(result[:query]).to eq([["a", "1"], ["a", "2"], ["c", "3"]])
+        expect(result[:query]).to eq([ [ "a", "1" ], [ "a", "2" ], [ "c", "3" ] ])
         expect(result[:normalized]).to eq("https://example.com?a=1&a=2&c=3")
       end
     end
