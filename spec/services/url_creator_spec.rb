@@ -30,8 +30,6 @@ RSpec.describe ShortUrlCreator do
 
         expect(result.visits).to eq(0)
       end
-
-      it
     end
   end
 
