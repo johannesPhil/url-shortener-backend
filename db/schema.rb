@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_24_223339) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_05_130408) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -20,6 +20,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_223339) do
     t.integer "visits", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "fingerprint", null: false
+    t.index ["fingerprint"], name: "index_short_urls_on_fingerprint", unique: true
     t.index ["slug"], name: "index_short_urls_on_slug", unique: true
   end
 end
