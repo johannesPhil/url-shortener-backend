@@ -68,7 +68,7 @@ RSpec.describe ShortUrlCreator do
         }
       )
 
-      allow_any_instance_of(ShortUrl).to receive(:save!).and_return(false)
+      allow(ShortUrl).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(ShortUrl.new))
     end
 
     it "raises ShortUrlCreator::PersistenceFailed" do
@@ -122,7 +122,7 @@ RSpec.describe ShortUrlCreator do
         }
       )
 
-      allow(SlugGenerator).to receive(:call).and_return("abc123,abc123,def456")
+      allow(SlugGenerator).to receive(:call).and_return("abc123","abc123","def456")
     end
 
     it "retries and returns a unique slug" do
@@ -134,7 +134,7 @@ RSpec.describe ShortUrlCreator do
   end
 
   context "slug generation keeps colliding" do
-    let(:original_url) { "https://example.com" }
+    let!(:original_url) { "https://example.com" }
 
     before do
       allow(UrlNormalizer).to receive(:call).and_return(
@@ -147,7 +147,7 @@ RSpec.describe ShortUrlCreator do
         }
       )
 
-      allow(SlugGenerator).to receive(:call).and_return("abc123", "abc123", "def456")
+      allow(SlugGenerator).to receive(:call).and_return("abc123","abc123","abc123")
     end
 
     it "raises PersistenceFailed error" do
@@ -164,5 +164,37 @@ RSpec.describe ShortUrlCreator do
         end
       }.not_to change { ShortUrl.count }
     end
+  end
+
+  context "fingerprint generation" do
+    let!(:original_url) {"https://example.com"}
+    before do
+      allow(UrlNormalizer).to receive(:call).and_return(
+        {
+        scheme: "https",
+        host: "example.com",
+        path: "/",
+        query: "",
+        normalized: "https://example.com"
+        }
+      )
+
+      allow(UrlIdentifier).to receive(:call).and_return("abc123")
+    end
+
+    context "when URL already exists" do
+      let!(:existing_url){create(:short_url, fingerprint:"abc123")}
+      let(:result) {described_class.call(original_url)}
+
+      it "returns the existing record" do
+        expect(result).to eq(existing_url)
+      end
+
+      it "does not create a new record" do
+        expect {described_class.call(original_url)}.not_to change{ShortUrl.count}
+      end
+    end
+
+
   end
 end
