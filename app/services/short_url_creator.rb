@@ -15,35 +15,46 @@ class ShortUrlCreator
   end
 
   def call
-    normalized_url = UrlNormalizer.call(@original_url)
-    fingerprint = UrlIdentifier.call(normalized_url)
-
-    existing_url = ShortUrl.find_by(fingerprint: fingerprint)
-    return existing_url if existing_url
-
     attempts = 0
 
-    ShortUrl.transaction do
-      slug = SlugGenerator.call
+    begin
+      normalized_url = UrlNormalizer.call(@original_url)
+      fingerprint = UrlIdentifier.call(normalized_url[:normalized])
 
-      ShortUrl.create!(
-        original_url: @original_url,
-        visits: 0,
-        fingerprint: fingerprint,
-        slug: slug
-      )
-    end
-
-    rescue ActiveRecord::RecordNotUnique
-      # If another process created the same URL concurrently
-      # Try to find it and return it
       existing_url = ShortUrl.find_by(fingerprint: fingerprint)
       return existing_url if existing_url
-      
+
+      ShortUrl.transaction do
+        slug = SlugGenerator.call
+
+        ShortUrl.create!(
+          original_url: @original_url,
+          visits: 0,
+          fingerprint: fingerprint,
+          slug: slug
+        )
+
+      end
+
+   rescue ActiveRecord::RecordInvalid => e
+    # Check if it's a slug error for retry, or fingerprint for re-find
+    if e.message.include?('Slug')
       attempts += 1
       retry if attempts < MAX_RETRIES
       raise PersistenceFailed
-    rescue UrlNormalizer::InvalidUrl
-      raise InvalidUrl
+    elsif e.message.include?('fingerprint')
+      existing_url = ShortUrl.find_by(fingerprint: fingerprint)
+      return existing_url if existing_url
+      raise PersistenceFailed
+    else
+      raise PersistenceFailed
+    end
+  rescue ActiveRecord::RecordNotUnique
+    # Handle DB-level collisions similarly
+  rescue UrlNormalizer::InvalidUrl
+    raise InvalidUrl
+
+
+  end
   end
 end
