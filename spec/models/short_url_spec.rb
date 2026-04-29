@@ -9,6 +9,7 @@ RSpec.describe ShortUrl, type: :model do
       before do
         subject.original_url = nil
         subject.slug = nil
+        subject.fingerprint = nil
       end
 
       it "validates presence of original_url" do
@@ -16,6 +17,10 @@ RSpec.describe ShortUrl, type: :model do
       end
 
       it "validates presence of slug" do
+        expect(subject).to be_invalid
+      end
+
+      it "validates presence of fingerprint" do
         expect(subject).to be_invalid
       end
     end
@@ -32,6 +37,22 @@ RSpec.describe ShortUrl, type: :model do
         expect(new_url.errors[:slug]).to include("has already been taken")
       end
       it "is valid when slug is unique" do
+        expect(unique_url).to be_valid
+      end
+    end
+
+    context "fingerprint uniqueness" do
+      let!(:existing_url) { FactoryBot.create(:short_url, fingerprint: "test-fingerprint") }
+
+      let(:new_url) { FactoryBot.build(:short_url, fingerprint: "test-fingerprint") }
+
+      let(:unique_url) { FactoryBot.build(:short_url, fingerprint: "unique-fingerprint") }
+
+      it "is invalid when fingerprint is not unique" do
+        expect(new_url).to be_invalid
+        expect(new_url.errors[:fingerprint]).to include("has already been taken")
+      end
+      it "is valid when fingerprint is unique" do
         expect(unique_url).to be_valid
       end
     end
