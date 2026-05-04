@@ -30,6 +30,12 @@ RSpec.describe ShortUrlCreator do
 
         expect(result.visits).to eq(0)
       end
+
+      it "stores the normalized URL" do
+        result = described_class.call(original_url)
+
+        expect(result.original_url).to eq("https://example.com/path?id=1")
+      end
     end
   end
 

@@ -1,7 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe "Api::v1::ShortUrls", type: :request do
-   let(:original_url) { "https://www.example.com/some-long-winded-url" }
+   let(:original_url) { "Example.com/some-long-winded-url?b=2&a=1" }
+   let(:normalized_url) { "https://example.com/some-long-winded-url?a=1&b=2" }
   describe "POST /api/v1/short_urls"  do
     context "with valid URL" do
       it "creates a short URL" do
@@ -22,7 +23,7 @@ RSpec.describe "Api::v1::ShortUrls", type: :request do
         }.to change(ShortUrl, :count).by(1)
         body = JSON.parse(response.body)
 
-        expect(body["original_url"]).to eq(original_url)
+        expect(body["original_url"]).to eq(normalized_url)
         expect(body["slug"]).to be_present
         expect(body["short_url"]).to include(body["slug"])
       end
@@ -70,4 +71,23 @@ RSpec.describe "Api::v1::ShortUrls", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "rate limiting" do
+  it "rate limits URL creation by IP" do
+    10.times do
+      post "/api/v1/short_urls", params: {
+        original_url: "https://example.com/page"
+      }
+    end
+
+    post "/api/v1/short_urls", params: {
+      original_url: "https://example.com/page"
+    }
+
+    body = JSON.parse(response.body)
+
+    expect(response).to have_http_status(:too_many_requests)
+    expect(body["error"]).to eq("rate_limited")
+  end
+end
 end
