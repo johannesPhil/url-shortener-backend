@@ -40,6 +40,15 @@ RSpec.configure do |config|
     Rails.root.join('spec/fixtures')
   ]
 
+  # Rack Attack
+  config.before(:suite) do
+      Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new if defined?(Rack::Attack)
+  end
+
+  config.before(:each) do
+    Rack::Attack.cache.store.clear if defined?(Rack::Attack)
+  end
+
   config.include FactoryBot::Syntax::Methods
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
