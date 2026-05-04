@@ -28,7 +28,7 @@ class ShortUrlCreator
         slug = SlugGenerator.call
 
         ShortUrl.create!(
-          original_url: @original_url,
+          original_url: normalized_url[:normalized],
           visits: 0,
           fingerprint: fingerprint,
           slug: slug
