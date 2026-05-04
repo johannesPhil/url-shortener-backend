@@ -33,28 +33,33 @@ class ShortUrlCreator
           fingerprint: fingerprint,
           slug: slug
         )
-
       end
 
-   rescue ActiveRecord::RecordInvalid => e
-    # Check if it's a slug error for retry, or fingerprint for re-find
-    if e.message.include?('Slug')
+    rescue ActiveRecord::RecordInvalid => e
+      # Check if it's a slug error for retry, or fingerprint for re-find
+      if e.record&.errors&.added?(:slug, :taken)|| e.message.include?("Slug")
+          attempts += 1
+          retry if attempts < MAX_RETRIES
+          raise PersistenceFailed
+      end
+
+
+      if e.record&.errors&.added?(:fingerprint, :taken)|| e.message.include?("Fingerprint")
+        existing_url = ShortUrl.find_by(fingerprint: fingerprint)
+        return existing_url if existing_url
+      end
+
+      raise PersistenceFailed
+
+    rescue ActiveRecord::RecordNotUnique
+      existing_url = ShortUrl.find_by(fingerprint: fingerprint)
+      return existing_url if existing_url
       attempts += 1
       retry if attempts < MAX_RETRIES
       raise PersistenceFailed
-    elsif e.message.include?('fingerprint')
-      existing_url = ShortUrl.find_by(fingerprint: fingerprint)
-      return existing_url if existing_url
-      raise PersistenceFailed
-    else
-      raise PersistenceFailed
+
+    rescue UrlNormalizer::InvalidUrl
+      raise InvalidUrl
     end
-  rescue ActiveRecord::RecordNotUnique
-    # Handle DB-level collisions similarly
-  rescue UrlNormalizer::InvalidUrl
-    raise InvalidUrl
-
-
-  end
   end
 end

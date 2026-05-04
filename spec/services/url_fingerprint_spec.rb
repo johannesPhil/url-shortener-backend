@@ -1,4 +1,4 @@
-RSpec.describe UrlFingerprint do
+RSpec.describe UrlIdentifier do
   it "returns hex digest of the normalized URL" do
     fingerprint = described_class.call("https://example.com/path?a=1&b=2")
 

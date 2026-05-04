@@ -7,4 +7,17 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  get "/:slug", to: "short_urls#show", as: :short_url
+
+
+  namespace :api do
+    namespace :v1 do
+      resources :short_urls, only: [ :create ], param: :slug do
+        member do
+          get :stats
+        end
+      end
+    end
+  end
 end
