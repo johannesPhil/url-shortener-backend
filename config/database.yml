@@ -6,6 +6,10 @@ default: &default
   password: <%= ENV["DB_PASSWORD"] %>
   pool: 5
 
+production:
+  <<: *default
+  database: url_shortener_production
+
 development:
   <<: *default
   database: url_shortener_dev
@@ -13,3 +17,4 @@ development:
 test:
   <<: *default
   database: url_shortener_test
+
