@@ -1,6 +1,6 @@
 # URL Shortener - Project Progress & Learning Notes
 
-> **Project Goal:** Build a URL shortener API while learning Ruby/Rails patterns
+> **Project Goal:** Build a URL shortener API while learning Ruby/Rails patterns + Cloud Deployment
 
 ---
 
@@ -32,49 +32,72 @@ Located in `app/services/` - following Rails best practice of extracting busines
 
 **Key Learning:** Notice how we mock `UrlNormalizer` in `ShortUrlCreator` tests - this is "test isolation" and prevents one service's bugs from cascading into others' tests.
 
+### 4. API Endpoints (All Working)
+- **POST /api/v1/short_urls** - Creates shortened URLs with error handling ✓
+- **GET /:slug** - Redirects to original URL, tracks visits ✓
+- **GET /api/v1/short_urls/:slug/stats** - Returns visit count and original URL ✓
+
+### 5. Infrastructure & Security
+- **Rack::Attack Rate Limiting** - 10 requests/60s per IP ✓
+- **Production Dockerfile** - Multi-stage build, optimized for performance ✓
+- **Kamal Deployment** - Already configured for deployment (config/deploy.yml) ✓
+- **CI/CD Setup** - GitHub Actions for testing, linting, security scanning ✓
+
 ---
 
 ## 🎯 Next Steps (Priority Order)
 
-### High Priority - API Layer
-These will teach you Rails controllers, routing, and JSON API patterns:
+### Phase 1 - Manual Deployment (In Progress)
+Learning: Linux basics, SSH, reverse proxy, process management
 
-1. **Create Short URL Endpoint**
-   - `POST /api/v1/urls` - accepts `{ "url": "https://..." }`
-   - Returns `{ "slug": "abc123", "short_url": "http://localhost:3000/abc123" }`
-   - **Ruby Concept:** Strong parameters, `rescue_from` for error handling
+1. **Manual Deploy to Oracle Cloud VM**
+   - SSH into VM
+   - Install Ruby, PostgreSQL, Nginx
+   - Git clone app
+   - Configure systemd for auto-start
+   - Set up Nginx reverse proxy
+   - **Concepts:** SSH workflows, Linux processes, HTTP reverse proxying
 
-2. **Redirect Endpoint**
-   - `GET /:slug` - looks up slug, increments `visits`, redirects
-   - **Ruby Concept:** `find_by!` (bang method that raises), `redirect_to`
+2. **HTTPS Setup**
+   - Install Let's Encrypt certificate
+   - Configure Nginx SSL
+   - **Concepts:** DNS, SSL/TLS, cert management
 
-3. **Stats Endpoint**
-   - `GET /api/v1/urls/:slug/stats` - returns visit count
-   - **Ruby Concept:** Serializer patterns (jbuilder or plain `as_json`)
+### Phase 2 - CI/CD Automation
+Learning: GitHub Actions, automated testing, automated deployment
 
-### Medium Priority - Infrastructure
+3. **GitHub Actions Workflow**
+   - Build Docker image on push to main
+   - Push to GHCR (GitHub Container Registry)
+   - Automated tests before deployment
+   - **Concepts:** YAML workflows, container registries, CI/CD pipelines
 
-4. **Rack::Attack Configuration**
-   - Rate limiting on URL creation (prevent abuse)
-   - **Ruby Concept:** Rack middleware, initializer configuration
+4. **Kamal Deployment**
+   - Deploy containerized app to Oracle VM
+   - Automated rollbacks
+   - **Concepts:** Docker orchestration, zero-downtime deploys
+
+### Phase 3 - Features (After deployment is stable)
 
 5. **OmniAuth Integration**
    - Google/Facebook login for "my links" feature
+   - User owns their shortened URLs
    - **Ruby Concept:** Middleware, OAuth flows, session management in API mode
 
-### Low Priority - Polish
+6. **IP/Location Analytics**
+   - Track visitor IP, country, city
+   - Enhanced stats endpoint
+   - **Ruby Concept:** Geolocation gems, analytics data modeling
 
-6. **Background Job for Analytics**
+7. **Background Job for Analytics**
    - Move visit incrementing to Solid Queue
    - **Ruby Concept:** Active Job, async processing
 
 ---
 
-## 🐛 Known Issues to Fix
+## 🐛 Known Issues
 
-1. **Broken Test:** `spec/services/url_creator_spec.rb:34` has an empty `it` block
-2. **Schema Drift:** Run `rails db:migrate` to apply fingerprint migration to schema.rb
-3. **Slug Validation Mismatch:** Model allows nil, factory always generates one - decide on one approach
+None currently - MVP is stable and deployment-ready!
 
 ---
 
@@ -96,6 +119,8 @@ These will teach you Rails controllers, routing, and JSON API patterns:
 
 ## 🚀 Quick Start Commands
 
+```basDevelopment Commands
+
 ```bash
 # Run tests
 bundle exec rspec
@@ -111,18 +136,46 @@ rails routes
 
 # Database console
 rails dbconsole
+
+# Start dev server
+rails server
 ```
 
+## 🚀 Deployment Roadmap
+
+```bash
+# Phase 1: Manual Deployment
+# 1. SSH to Oracle VM
+# 2. Install dependencies
+# 3. Git clone
+# 4. systemd service
+# 5. Nginx reverse proxy
+
+# Phase 2: Containerized Deployment
+# 1. Docker build locally
+# 2. Push to GHCR
+# 3. Deploy with Kamal
+
 ---
 
-## 💡 Suggested Learning Path
+## 📊 Learning Progress Summary
 
-1. **Start with the Redirect endpoint** - simplest, teaches controller + routing basics
-2. **Add the Create endpoint** - introduces strong params, JSON responses, error handling
-3. **Configure Rack::Attack** - learn middleware stack
-4. **Add request specs** - integration testing with real HTTP requests
+| Category | Status | Comments |
+|----------|--------|----------|
+| **Ruby/Rails Basics** | ✅ Done | Service objects, transactions, validations mastered |
+| **API Design** | ✅ Done | RESTful endpoints, JSON responses, error handling |
+| **Testing** | ✅ Done | RSpec, mocking, FactoryBot fluent |
+| **Database Design** | ✅ Done | Migrations, indexes, deduplication strategy |
+| **Security** | ✅ Partial | Rate limiting done; OAuth/auth pending |
+| **Deployment** | 🚧 In Progress | Manual deployment on Oracle Cloud |
+| **CI/CD** | 🚧 Planned | GitHub Actions → GHCR → Kamal |
+| **Monitoring** | 📋 Planned | Logging, health checks after deploy |
+| **Analytics** | 📋 Planned | Geolocation tracking for URLs |
 
----
+*Last updated: MayD Automation
+# 1. GitHub Actions on push
+# 2. Auto-deploy on success
+```
 
 ## Architecture Decisions
 
