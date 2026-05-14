@@ -48,7 +48,7 @@ gem "oj", "~> 3.16"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  gem "debug", platforms: %i[ mri windows ]
 
   gem "prettier", "~> 4.0"
   gem "ruby-lsp"

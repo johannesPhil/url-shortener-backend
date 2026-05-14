@@ -7,8 +7,15 @@ default: &default
   pool: 5
 
 production:
-  <<: *default
-  database: url_shortener_production
+  primary: &primary_production
+    <<: *default
+    database: url_shortener_production
+  cable:
+    <<: *primary_production
+  cache:
+    <<: *primary_production
+  queue:
+    <<: *primary_production
 
 development:
   <<: *default
