@@ -78,5 +78,5 @@ jobs:
           SECRET_KEY_BASE: test
 
         run: |
-          bin rails db:test:prepare
+          bin/rails db:test:prepare
           bundle exec rspec 
