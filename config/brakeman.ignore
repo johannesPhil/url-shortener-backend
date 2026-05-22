@@ -1,0 +1,27 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "adcff655d34a4a4283a461ca6b009251212d9244e80f1f8837f75f9167cf6945",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/short_urls_controller.rb",
+      "line": 6,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(ShortUrl.find_by!(:slug => params[:slug]).original_url, :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ShortUrlsController",
+        "method": "show"
+      },
+      "user_input": "ShortUrl.find_by!(:slug => params[:slug]).original_url",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": "Intentional behavior for a URL shortener. Stored destinations are normalized to HTTP/HTTPS before persistence."
+    }
+  ]
+}
