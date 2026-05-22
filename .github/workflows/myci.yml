@@ -8,7 +8,7 @@ on:
 
 jobs:
   security_scan:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -20,10 +20,10 @@ jobs:
           bundler-cache: true
 
       - name: Scan for vulnerabilities
-        uses: bin/brakeman --no-pager
+        run: bin/brakeman --no-pager
   
   lint:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps: 
       - name: Checkout code 
         uses: actions/checkout@v6
@@ -47,7 +47,7 @@ jobs:
           POSTGRESS_USER: postgres
           POSTGRES_PASSWORD: password
         ports: 
-          - 5432: 5432
+          - 5432:5432
 
         options: >-
           --health-cmd pg_isready
@@ -69,7 +69,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-          bundle-cache: true
+          bundler-cache: true
 
       - name: Run RSpec test
         env:
