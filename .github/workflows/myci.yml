@@ -1,0 +1,82 @@
+name: CI/CD Deployment pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  security_scan:
+    runs_on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set Up Ruby
+        uses: ruby/setup-ruby@v1
+        with:  
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Scan for vulnerabilities
+        uses: bin/brakeman --no-pager
+  
+  lint:
+    runs_on: ubuntu-latest
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bin/rubocop -f github
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env: 
+          POSTGRESS_DB: url_shortener_test
+          POSTGRESS_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports: 
+          - 5432: 5432
+
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps: 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && \
+          sudo apt-get install --no-install-recommends -y \
+          build-essential libpq-dev
+
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundle-cache: true
+
+      - name: Run RSpec test
+        env:
+          RAILS_ENV: test
+          DB_URL: postgres://postgres:password@localhost:5432/url_shortener_test
+          SECRET_KEY_BASE: test
+
+        run: |
+          bin rails db:test:prepare
+          bundle exec rspec 
