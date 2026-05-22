@@ -1,4 +1,4 @@
-require 'digest'
+require "digest"
 
 module UrlIdentifier
   def self.call(normalized_url)

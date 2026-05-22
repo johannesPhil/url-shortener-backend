@@ -27,13 +27,13 @@ class UrlNormalizer
     end
 
     scheme = normalize_scheme(@uri)
-    host = normalize_host(@uri,scheme,@raw_url)
+    host = normalize_host(@uri, scheme, @raw_url)
     path = normalize_path(@uri)
     queries = normalize_query(@uri)
 
     normalized = "#{scheme}://#{host}#{path}"
 
-    if queries.any? 
+    if queries.any?
       normalized += "?" + queries.map { |key, value| "#{key}=#{value}" }.join("&")
     end
 
@@ -42,7 +42,7 @@ class UrlNormalizer
       host: host,
       path: path,
       query: queries,
-      normalized: normalized,
+      normalized: normalized
     }
   end
 
@@ -68,7 +68,7 @@ class UrlNormalizer
 
   # normalize_path
   def normalize_path(uri)
-    if  uri.path == '/' || uri.path.empty?
+    if  uri.path == "/" || uri.path.empty?
       ""
     else
       uri.path
