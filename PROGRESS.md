@@ -43,53 +43,87 @@ Located in `app/services/` - following Rails best practice of extracting busines
 - **Kamal Deployment** - Already configured for deployment (config/deploy.yml) ✓
 - **CI/CD Setup** - GitHub Actions for testing, linting, security scanning ✓
 
+### 6. Infrastructure & Manual Deployment (Alibaba Cloud Migration)
+Completed the manual production deployment after pivoting from Oracle Cloud to Alibaba Cloud, establishing a hardened Ubuntu 22.04 environment with secure Rails 8 orchestration.
+
+| Component | Implementation | Learning Outcome |
+|:---|:---|:---|
+| **Cloud Provider** | Alibaba Cloud ECS (Ubuntu 22.04) | Managed the provider pivot and configured Alibaba Cloud Security Groups for ports `80`/`443`. |
+| **OS Hardening** | `ufw` firewall rules | Added host-level network protection alongside cloud firewall controls. |
+| **Environment Config** | `/etc/default/url-shortener` | Followed FHS conventions for production environment variables and service injection. |
+| **Database** | PostgreSQL 14 | Standardized production auth on `scram-sha-256` password encryption. |
+| **Rails 8 Solid Suite** | Dedicated `solid_cache`, `solid_cable`, and `solid_queue` database entries | Resolved `ActiveRecord::AdapterNotSpecified` errors from Rails 8's database-backed adapters. |
+| **Process Mgmt** | Systemd | Created a resilient service unit with automatic restarts, secure `EnvironmentFile` loading, and logs redirected to `/var/www/url-shortener/log/`. |
+| **Credential Isolation** | Restricted configuration vault | Moved database passwords and `SECRET_KEY_BASE` out of the unit file into a `600`-permission config file. |
+| **Reverse Proxy** | Nginx | Forwarded external traffic from ports `80`/`443` to Puma while preserving request headers. |
+
+**Key Learning:** Manual deployment bridged the gap between Rails code, Linux process management, cloud networking, and production security. Keeping secrets outside the service unit and inside an FHS-aligned vault makes the setup safer and easier to operate.
+
 ---
 
 ## 🎯 Next Steps (Priority Order)
 
-### Phase 1 - Manual Deployment (In Progress)
-Learning: Linux basics, SSH, reverse proxy, process management
+<!-- ### Phase 1 - Production Hardening
+Learning: DNS, SSL/TLS, monitoring, operational polish -->
 
-1. **Manual Deploy to Oracle Cloud VM**
-   - SSH into VM
-   - Install Ruby, PostgreSQL, Nginx
-   - Git clone app
-   - Configure systemd for auto-start
-   - Set up Nginx reverse proxy
-   - **Concepts:** SSH workflows, Linux processes, HTTP reverse proxying
-
-2. **HTTPS Setup**
+<!-- 1. **HTTPS Setup**
    - Install Let's Encrypt certificate
    - Configure Nginx SSL
    - **Concepts:** DNS, SSL/TLS, cert management
 
-### Phase 2 - CI/CD Automation
-Learning: GitHub Actions, automated testing, automated deployment
+2. **Monitoring & Health Checks**
+   - Add uptime checks
+   - Review production logs from `/var/www/url-shortener/log/`
+   - **Concepts:** observability, incident triage, service reliability -->
 
-3. **GitHub Actions Workflow**
+### Phase 1 - CI/CD Automation
+Learning: GitHub Actions, SSH automation, release scripts, systemd-based deploys
+
+1. **CI Quality Gate**
+   - Run RSpec on every push and pull request
+   - Add linting/security checks before deployment
+   - Keep deployment blocked unless tests pass
+   - **Concepts:** YAML workflows, build status, failing fast
+
+2. **Automated Manual Deployment**
+   - Use GitHub Actions to SSH into the Alibaba Cloud ECS instance
+   - Pull the latest code, install dependencies, run migrations, and restart the systemd service
+   - Reuse the existing Nginx, Puma, PostgreSQL, and `/etc/default/url-shortener` setup
+   - **Concepts:** SSH keys, deploy users, non-interactive shell scripts, systemd orchestration
+
+3. **Release Safety**
+   - Add a deploy script with clear steps and failure handling
+   - Keep a simple rollback path using previous Git commits
+   - Run smoke checks against the live app after restart
+   - **Concepts:** idempotent scripts, rollback thinking, health verification
+
+### Phase 2 - Containerized Deployment
+Learning: Docker image builds, registries, Kamal, zero-downtime deployment
+
+4. **Docker Image Pipeline**
    - Build Docker image on push to main
    - Push to GHCR (GitHub Container Registry)
-   - Automated tests before deployment
-   - **Concepts:** YAML workflows, container registries, CI/CD pipelines
+   - Promote a tested image instead of rebuilding on the server
+   - **Concepts:** container registries, image tags, immutable releases
 
-4. **Kamal Deployment**
-   - Deploy containerized app to Oracle VM
+5. **Kamal Deployment**
+   - Deploy containerized app to Alibaba Cloud ECS
    - Automated rollbacks
    - **Concepts:** Docker orchestration, zero-downtime deploys
 
 ### Phase 3 - Features (After deployment is stable)
 
-5. **OmniAuth Integration**
+6. **OmniAuth Integration**
    - Google/Facebook login for "my links" feature
    - User owns their shortened URLs
    - **Ruby Concept:** Middleware, OAuth flows, session management in API mode
 
-6. **IP/Location Analytics**
+7. **IP/Location Analytics**
    - Track visitor IP, country, city
    - Enhanced stats endpoint
    - **Ruby Concept:** Geolocation gems, analytics data modeling
 
-7. **Background Job for Analytics**
+8. **Background Job for Analytics**
    - Move visit incrementing to Solid Queue
    - **Ruby Concept:** Active Job, async processing
 
@@ -101,7 +135,7 @@ None currently - MVP is stable and deployment-ready!
 
 ---
 
-## 📚 Ruby/Rails Concepts You've Used
+## 📚 Ruby/Rails Concepts Used
 
 | Concept | Where You Used It |
 |---------|-------------------|
@@ -118,8 +152,6 @@ None currently - MVP is stable and deployment-ready!
 ---
 
 ## 🚀 Quick Start Commands
-
-```basDevelopment Commands
 
 ```bash
 # Run tests
@@ -144,17 +176,30 @@ rails server
 ## 🚀 Deployment Roadmap
 
 ```bash
-# Phase 1: Manual Deployment
-# 1. SSH to Oracle VM
-# 2. Install dependencies
-# 3. Git clone
-# 4. systemd service
-# 5. Nginx reverse proxy
+# Phase 1: Manual Deployment (completed on Alibaba Cloud)
+# 1. Provision Alibaba Cloud ECS
+# 2. Install Ruby, PostgreSQL, Nginx
+# 3. Configure systemd service
+# 4. Configure Nginx reverse proxy
+# 5. Secure environment variables in /etc/default/url-shortener
 
-# Phase 2: Containerized Deployment
+# Phase 2: Automate the manual deployment
+# 1. Run tests in GitHub Actions
+# 2. SSH into Alibaba Cloud ECS from CI
+# 3. Pull latest code and run bundle/rails tasks
+# 4. Restart the systemd service
+# 5. Run smoke checks against production
+
+# Phase 3: HTTPS and production hardening
+# 1. Issue Let's Encrypt certificate
+# 2. Enable Nginx SSL
+# 3. Add monitoring and health checks
+
+# Phase 4: Containerized Deployment
 # 1. Docker build locally
 # 2. Push to GHCR
 # 3. Deploy with Kamal
+```
 
 ---
 
@@ -167,15 +212,10 @@ rails server
 | **Testing** | ✅ Done | RSpec, mocking, FactoryBot fluent |
 | **Database Design** | ✅ Done | Migrations, indexes, deduplication strategy |
 | **Security** | ✅ Partial | Rate limiting done; OAuth/auth pending |
-| **Deployment** | 🚧 In Progress | Manual deployment on Oracle Cloud |
-| **CI/CD** | 🚧 Planned | GitHub Actions → GHCR → Kamal |
-| **Monitoring** | 📋 Planned | Logging, health checks after deploy |
+| **Deployment** | ✅ Done | Manual deployment completed on Alibaba Cloud ECS |
+| **CI/CD** | 🚧 Planned | GitHub Actions → SSH/systemd deploy → GHCR → Kamal |
+| **Monitoring** | 📋 Planned | Health checks and alerting after HTTPS |
 | **Analytics** | 📋 Planned | Geolocation tracking for URLs |
-
-*Last updated: MayD Automation
-# 1. GitHub Actions on push
-# 2. Auto-deploy on success
-```
 
 ## Architecture Decisions
 
@@ -186,4 +226,4 @@ rails server
 
 ---
 
-*Last updated: April 2026*
+*Last updated: May 2026*
