@@ -82,3 +82,37 @@ jobs:
         run: |
           bin/rails db:test:prepare
           bundle exec rspec 
+  deploy:
+    needs: [security_scan, lint, test]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Deployment commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{secrets.SERVER_HOST}}
+          username: ${{secrets.SERVER_USER}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          script_stop: true
+
+          script: |
+            echo "Successfully connected to Alibaba Cloud ECS instance"
+            cd /var/www/url-shortener
+
+            echo "Fetching lastest changes"
+            git pull origin master
+
+            echo "Loading production environment variables"
+            export $(cat /etc/default/url-shortener | xargs)
+
+            echo "Installing production gems"
+            bundle install --deployment --without development test
+
+            echo "Running database migrations"
+            bin/rails db:migrate RAILS_ENV=production
+
+            echo "Restating aplication service"
+            sudo /usr/bin/systemctl restart url-shortener
+
+            echo "Deployment completed"
