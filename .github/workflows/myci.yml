@@ -99,18 +99,24 @@ jobs:
           script: |
             echo "Successfully connected to Alibaba Cloud ECS instance"
             cd /var/www/url-shortener
-
+            
             echo "Fetching lastest changes"
             git pull origin master
+            
+            echo "Configuring bundler"
+            bundle config set --local path 'vendor/bundle'
+            bundle config set --local without 'development test'
 
             echo "Loading production environment variables"
-            export $(cat /etc/default/url-shortener | xargs)
+            set -a # automatically export all variables
+            source /etc/default/url-shortener
+            set +a
 
             echo "Installing production gems"
-            bundle install --deployment --without development test
+            RAILS_ENV=production bundle install
 
             echo "Running database migrations"
-            bin/rails db:migrate RAILS_ENV=production
+            RAILS_ENV=production bin/rails db:migrate
 
             echo "Restating aplication service"
             sudo /usr/bin/systemctl restart url-shortener
