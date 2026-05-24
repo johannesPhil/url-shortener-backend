@@ -100,8 +100,9 @@ jobs:
             echo "Successfully connected to Alibaba Cloud ECS instance"
             cd /var/www/url-shortener
             
-            echo "Fetching lastest changes"
-            git pull origin master
+            echo "Fetching latest changes"
+            git fetch origin master
+            git reset --hard origin/master
             
             echo "Configuring bundler"
             bundle config set --local path 'vendor/bundle'
@@ -118,7 +119,7 @@ jobs:
             echo "Running database migrations"
             RAILS_ENV=production bin/rails db:migrate
 
-            echo "Restating aplication service"
+            echo "Restarting aplication service"
             sudo /usr/bin/systemctl restart url-shortener
 
             echo "Deployment completed"
