@@ -59,71 +59,90 @@ Completed the manual production deployment after pivoting from Oracle Cloud to A
 
 **Key Learning:** Manual deployment bridged the gap between Rails code, Linux process management, cloud networking, and production security. Keeping secrets outside the service unit and inside an FHS-aligned vault makes the setup safer and easier to operate.
 
+### 7. CI/CD Pipeline & Automated Deployment
+| Component | Implementation | Learning Outcome |
+|:---|:---|:---|
+| **CI Quality Gate** | Embedded `actions/checkout@v6` alongside automated security auditing (`brakeman`), formatting compliance (`rubocop`), and database-driven orchestration (`rspec` running against live, ephemeral `postgres:14` service containers). | Built a true gatekeeper system. If syntax style, static security assessments, or data unit specs fail in the virtual runner, the entire delivery sequence safely aborts to protect production. |
+| **Atomic Updates** | Replaced unstable inline `git pull` calls with a sequence using `git fetch origin master` followed by an explicit `git reset --hard origin/master`. | Learned how to prevent pipeline failures caused by accidental, untracked local file modifications or auto-generated logs conflicting on the live host environment. |
+| **Dependency Lock** | Hardcoded internal Bundler routing strictly to local storage execution paths using `bundle config set --local path 'vendor/bundle'` and matching exclusions. | Solved dependency isolation. Tracking `.bundle/config` ensures the server encapsulates application dependencies locally within the project directory without requiring global root updates. |
+| **Secure Command Execution** | Layered targeted `appleboy/ssh-action@v1.0.3` hooks using repository secrets (`SERVER_HOST`, `SERVER_USER`, `SSH_PRIVATE_KEY`). | Mastered headless automation. By mapping root keys down to explicit `.ssh/authorized_keys` with tight permissions (`700`/`600`), GitHub can deploy securely over non-interactive shell limits. |
+
+### 8. Principle of Least Privilege & Secure Host Hardening
+| Component | Implementation | Learning Outcome |
+|:---|:---|:---|
+| **Sudo Restriction Vault** | Stripped the `deployer` user from the global `sudo` or `admin` Unix groups. Invoked `sudo visudo` to append an explicit bypass rule: `deployer ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart url-shortener`. | Mastered privilege isolation. If the CI/CD pipeline or the application process itself is compromised, the attacker is completely trapped in an unprivileged scope and cannot alter host firewalls, read other user environments, or install system packages. |
+| **Configuration Vault Guard** | Located application-level database credentials and the Rails `SECRET_KEY_BASE` away from standard repository scripts. Stored them inside `/etc/default/url-shortener` with system permissions locked down strictly to `chown deployer:deployer` and `chmod 600`. | Learned to prevent data leaks via environment sniffing. Restricting read/write access exclusively to the system process owner prevents other local system accounts or unprivileged users from extracting production tokens. |
+| **Targeted Folder Ownership** | Ran `chown -R deployer:deployer /var/www/url-shortener` across the workspace, combined with standard directory permissions (`755` for folders, `644` for files). | Eliminated the dangerous "fix" of using `sudo` to bypass local permission roadblocks. Because `deployer` natively owns the application code layer, dependencies and migrations compile smoothly without elevating process executions to root. |
+| **Secure Systemd Execution Scope** | Configured the application's `.service` unit descriptor file with explicit execution Directives: `User=deployer` and `Group=deployer`. | Enforced a sandboxed runtime environment. By executing the Puma application server under a regular, restricted daemon context instead of root, a remote code execution exploit cannot compromise the core Linux kernel filesystem. |
+
+---
+
+## 💥 Engineering Battles & Lessons Learned (The "Gotchas")
+
+### 1. The Linux Permissions & Security Maze
+- **The Challenge:** Giving the automated CI/CD pipeline enough execution context to deploy updates without exposing root server privileges.
+- **The Fix:** Stripped the `deployer` user out of the broad system `sudo` group to enforce the Principle of Least Privilege. Wrote a hyper-targeted `visudo` exception configuration (`deployer ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart url-shortener`) to restrict elevated access strictly to application reboots, while carefully balancing permission layers on the app folder and environment files.
+
+### 2. The SSH Key Mix-Up
+- **The Challenge:** Cloud environments inject default SSH authorization structures exclusively into the root host workspace, rejecting automated CI connection requests targeting the new unprivileged deployment user.
+- **The Fix:** Created a standalone `.ssh` directory manually within the `deployer` user scope, migrated authorized public tracking records from root, and hard-locked permissions down to strict `700` (directory) and `600` (file) guidelines to satisfy SSH host validation requirements.
+
+### 3. The "Moving rbenv" Nightmare
+- **The Challenge:** Transitioning a local user-scoped Ruby runtime (`/root/.rbenv`) into a shared system environment path (`/opt/rbenv`) broke multiple internal dependencies.
+- **The Hurdles:**
+  - *The Symlink Trap:* Symlinking binaries back to `/root/` instantly failed because the unprivileged application user lacked directory visibility.
+  - *Hardcoded Shebangs:* Relocating directories broke internal core scripts for `gem` and `bundle` which maintained internal references (`#!/root/.rbenv/...`) hardcoded at the top of their execution files.
+  - *The Segmentation Fault:* Running global string replacements via `sed` on compiled Ruby binaries corrupted machine code signatures, causing immediate core dumps.
+- **The Fix:** Completely deleted the corrupted system-level Ruby version and triggered a clean, fresh compilation from source targeting the `/opt/rbenv` prefix path, stabilizing system-wide access.
+
+### 4. The Non-Interactive Shell "Black Hole"
+- **The Challenge:** Non-interactive automated SSH sessions initialized by CI/CD workflows bypass user profile generation hooks (`.bashrc`, `.profile`), dropping execution environments out of the system `$PATH` and triggering `bundle: command not found` exceptions.
+- **The Fix:** Generated global, permanent system symlinks inside `/usr/local/bin/` pointing directly to `/opt/rbenv/shims/`, ensuring core runtime shims remain universally accessible across all shell interaction layers.
+
+### 5. Gem Management & The Sudo Trap
+- **The Challenge:** Preventing shared, root-owned `rbenv` directories from forcing the unprivileged `deployer` user to invoke `sudo` when installing application dependencies.
+- **The Fix:** Bound execution tasks locally using `bundle config set --local path 'vendor/bundle'`. This dropped tracking directories directly into the isolated project folder owned by `deployer`. The local configuration files (`.bundle/config`) are safely tracked in Git, while ignoring the massive `vendor/bundle` cargo dependencies via `.gitignore`.
+
+### 6. The Nginx IPv4 vs. IPv6 Trap
+- **The Challenge:** Nginx and Puma processes ran perfectly in isolation but threw gateway errors when bridged together.
+- **The Fix:** Diagnosed that Linux resolves `localhost` references natively down to the IPv6 loopback interface (`::1`), while Puma was listening exclusively on the standard IPv4 channel (`127.0.0.1`). Explicitly hardcoded the upstream destination signature inside Nginx to `proxy_pass http://127.0.0.1:3000;` to align the network traffic.
+
+### 7. Systemd User Isolation
+- **The Challenge:** Shielding the core OS environment from file write manipulation or arbitrary command execution vulnerabilities in the event of an application exploit.
+- **The Fix:** Adjusted the system service unit configuration to enforce `User=deployer` context handling. Since folder visibility constraints and logs were pre-mapped directly to the `deployer` ownership profile, the runtime layer retained standard permission mechanics without needing root tracking privileges.
+
 ---
 
 ## 🎯 Next Steps (Priority Order)
 
-<!-- ### Phase 1 - Production Hardening
-Learning: DNS, SSL/TLS, monitoring, operational polish -->
 
-<!-- 1. **HTTPS Setup**
-   - Install Let's Encrypt certificate
-   - Configure Nginx SSL
-   - **Concepts:** DNS, SSL/TLS, cert management
-
-2. **Monitoring & Health Checks**
-   - Add uptime checks
-   - Review production logs from `/var/www/url-shortener/log/`
-   - **Concepts:** observability, incident triage, service reliability -->
-
-### Phase 1 - CI/CD Automation
-Learning: GitHub Actions, SSH automation, release scripts, systemd-based deploys
-
-1. **CI Quality Gate**
-   - Run RSpec on every push and pull request
-   - Add linting/security checks before deployment
-   - Keep deployment blocked unless tests pass
-   - **Concepts:** YAML workflows, build status, failing fast
-
-2. **Automated Manual Deployment**
-   - Use GitHub Actions to SSH into the Alibaba Cloud ECS instance
-   - Pull the latest code, install dependencies, run migrations, and restart the systemd service
-   - Reuse the existing Nginx, Puma, PostgreSQL, and `/etc/default/url-shortener` setup
-   - **Concepts:** SSH keys, deploy users, non-interactive shell scripts, systemd orchestration
-
-3. **Release Safety**
-   - Add a deploy script with clear steps and failure handling
-   - Keep a simple rollback path using previous Git commits
-   - Run smoke checks against the live app after restart
-   - **Concepts:** idempotent scripts, rollback thinking, health verification
-
-### Phase 2 - Containerized Deployment
+### Phase 1 - Containerized Deployment
 Learning: Docker image builds, registries, Kamal, zero-downtime deployment
 
-4. **Docker Image Pipeline**
+1. **Docker Image Pipeline**
    - Build Docker image on push to main
    - Push to GHCR (GitHub Container Registry)
    - Promote a tested image instead of rebuilding on the server
    - **Concepts:** container registries, image tags, immutable releases
 
-5. **Kamal Deployment**
+2. **Kamal Deployment**
    - Deploy containerized app to Alibaba Cloud ECS
    - Automated rollbacks
    - **Concepts:** Docker orchestration, zero-downtime deploys
 
-### Phase 3 - Features (After deployment is stable)
+### Phase 2 - Features (After deployment is stable)
 
-6. **OmniAuth Integration**
+3. **OmniAuth Integration**
    - Google/Facebook login for "my links" feature
    - User owns their shortened URLs
    - **Ruby Concept:** Middleware, OAuth flows, session management in API mode
 
-7. **IP/Location Analytics**
+4. **IP/Location Analytics**
    - Track visitor IP, country, city
    - Enhanced stats endpoint
    - **Ruby Concept:** Geolocation gems, analytics data modeling
 
-8. **Background Job for Analytics**
+5. **Background Job for Analytics**
    - Move visit incrementing to Solid Queue
    - **Ruby Concept:** Active Job, async processing
 
