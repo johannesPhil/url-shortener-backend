@@ -97,7 +97,7 @@ jobs:
           script_stop: true
 
           script: |
-            echo "Successfully connected to Alibaba Cloud ECS instance"
+            echo "Successfully connected to Hetzner VPS"
             cd /var/www/url-shortener
             
             echo "Fetching latest changes"
