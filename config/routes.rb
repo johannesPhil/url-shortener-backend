@@ -18,6 +18,8 @@ Rails.application.routes.draw do
           get :stats
         end
       end
+      # resource :health, only: [ :show ]
+      get "health", to: "health#show"
     end
   end
 end
