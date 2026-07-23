@@ -182,20 +182,27 @@ Deliverable:
 ## Phase 5 — Scaling Concepts
 
 Goal:
-Think beyond one machine.
+Understand state management and asynchronous processing.
 
 Learn:
 
-* Redis
-* Queues
-* Async jobs
-* Caching
+* Rails Solid Queue
+* Rails.cache
+* Cache invalidation
+* Background processing
 * Horizontal scaling concepts
+
+Optional:
+
+* Redis
+    - Compare Redis with Rails Solid Queue and Solid Cache
+    - Understand when an in-memory datastore becomes advantageous
 
 Deliverable:
 
-* Async/background processing
-* Cached hot paths
+* Reliable asynchronous processing
+* Efficient caching
+* Understand trade-offs between database-backed and in-memory infrastructure
 
 ---
 

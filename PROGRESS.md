@@ -75,6 +75,21 @@ Completed the manual production deployment after pivoting from Oracle Cloud to A
 | **Targeted Folder Ownership** | Ran `chown -R deployer:deployer /var/www/url-shortener` across the workspace, combined with standard directory permissions (`755` for folders, `644` for files). | Eliminated the dangerous "fix" of using `sudo` to bypass local permission roadblocks. Because `deployer` natively owns the application code layer, dependencies and migrations compile smoothly without elevating process executions to root. |
 | **Secure Systemd Execution Scope** | Configured the application's `.service` unit descriptor file with explicit execution Directives: `User=deployer` and `Group=deployer`. | Enforced a sandboxed runtime environment. By executing the Puma application server under a regular, restricted daemon context instead of root, a remote code execution exploit cannot compromise the core Linux kernel filesystem. |
 
+### 9. Analytics Pipeline
+
+Implemented asynchronous geolocation enrichment for URL visits using Rails 8's Solid Queue.
+
+| Component | Implementation | Learning Outcome |
+|:---|:---|:---|
+| **Analytics Model** | Stores visitor metadata (IP, city, country) linked to `ShortUrl` | Learned data modelling for analytics events and one-to-many relationships. |
+| **Background Processing** | `GeolocationJob` enriches analytics asynchronously | Learned Active Job orchestration while keeping request latency low. |
+| **Service Layer** | `GeolocationService` coordinates provider interaction | Reinforced service object composition and separation of concerns. |
+| **Provider Pattern** | `IpApiProvider` encapsulates ip-api integration | Learned how to isolate third-party APIs behind a stable interface. |
+| **Rate Limit Handling** | Custom `RateLimitExceeded` exception with TTL-based retry strategy | Designed application-specific retry behavior instead of exposing HTTP implementation details. |
+| **Caching** | Rails.cache stores provider cooldown state | Learned how transient state differs from persistent application data. |
+
+**Key Learning:** External services should expose a clean domain interface. The application should never know about provider-specific HTTP headers like `X-Rl` and `X-Ttl`; those concerns belong inside the provider implementation.
+
 ---
 
 ## 💥 Engineering Battles & Lessons Learned (The "Gotchas")
@@ -132,19 +147,18 @@ Learning: Docker image builds, registries, Kamal, zero-downtime deployment
 
 ### Phase 2 - Features (After deployment is stable)
 
-3. **OmniAuth Integration**
-   - Google/Facebook login for "my links" feature
-   - User owns their shortened URLs
-   - **Ruby Concept:** Middleware, OAuth flows, session management in API mode
+3. **Authentication**
+   - Google OAuth
+   - User-owned links
 
-4. **IP/Location Analytics**
-   - Track visitor IP, country, city
-   - Enhanced stats endpoint
-   - **Ruby Concept:** Geolocation gems, analytics data modeling
+4. **Link Management**
+   - CRUD for authenticated users
+   - Search and filtering
 
-5. **Background Job for Analytics**
-   - Move visit incrementing to Solid Queue
-   - **Ruby Concept:** Active Job, async processing
+5. **Analytics Dashboard**
+   - Time-series visit charts
+   - Geographic distribution
+   - Referrers
 
 ---
 
@@ -167,6 +181,11 @@ None currently - MVP is stable and deployment-ready!
 | Validation DSL | `validates :field, presence: true` |
 | Factory Pattern | FactoryBot in specs |
 | Mocking/Stubbing | `allow().to receive()` in tests |
+| Active Job | GeolocationJob |
+| Background Processing | Solid Queue |
+| Provider Pattern | IpApiProvider |
+| Custom Retry Strategy | RateLimitExceeded |
+| Cache API | Rails.cache |
 
 ---
 
@@ -232,9 +251,9 @@ rails server
 | **Database Design** | ✅ Done | Migrations, indexes, deduplication strategy |
 | **Security** | ✅ Partial | Rate limiting done; OAuth/auth pending |
 | **Deployment** | ✅ Done | Manual deployment completed on Alibaba Cloud ECS |
-| **CI/CD** | 🚧 Planned | GitHub Actions → SSH/systemd deploy → GHCR → Kamal |
+| **CI/CD** |  ✅ | GitHub Actions → SSH/systemd deploy → GHCR → Kamal |
 | **Monitoring** | 📋 Planned | Health checks and alerting after HTTPS |
-| **Analytics** | 📋 Planned | Geolocation tracking for URLs |
+| Analytics | ✅ Done | Async geolocation enrichment with provider abstraction and rate limiting |
 
 ## Architecture Decisions
 
