@@ -52,6 +52,7 @@ group :development, :test do
 
   gem "prettier", "~> 4.0"
   gem "ruby-lsp"
+  gem "rufo", require: false
 
   gem "dotenv-rails", "~> 3.1", ">= 3.1.8"
 
@@ -59,6 +60,8 @@ group :development, :test do
   gem "brakeman", require: false
 
   gem "rspec-rails", "~> 8.0", ">= 8.0.2"
+
+  gem "webmock"
 
   gem "faker", "~> 3.5", ">= 3.5.2"
 

@@ -2,7 +2,7 @@ class CreateAnalytics < ActiveRecord::Migration[8.0]
   def change
     create_table :analytics do |t|
       t.references :short_url, null: false, foreign_key: true, index: false
-
+      # t.integer :visits, null: false
       t.string :ip_address, null: false
       t.text :user_agent, null: false
       t.string :city
