@@ -81,7 +81,7 @@ jobs:
 
         run: |
           bin/rails db:test:prepare
-          bundle exec rspec 
+          bundle exec rspec --backtrace
   deploy:
     needs: [security_scan, lint, test]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
