@@ -78,6 +78,7 @@ jobs:
           DB_PASSWORD: password
           DB_URL: postgres://postgres:password@localhost:5432/url_shortener_test
           SECRET_KEY_BASE: test
+          SHORT_URL_HOST: ${{ vars.SHORT_URL_HOST }}
 
         run: |
           bin/rails db:test:prepare
