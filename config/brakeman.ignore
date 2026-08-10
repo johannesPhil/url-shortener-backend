@@ -1,13 +1,32 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 122,
+      "fingerprint": "21ab0fe00fdd5899ffc405cff75aadb91b805ee996a614f7e27b08a287e9062d",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 8.0.4 ends on 2026-10-07",
+      "file": "Gemfile.lock",
+      "line": 286,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        1104
+      ],
+      "note": "Upgrade before the due date"
+    },
+    {
       "warning_type": "Redirect",
       "warning_code": 18,
       "fingerprint": "adcff655d34a4a4283a461ca6b009251212d9244e80f1f8837f75f9167cf6945",
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/short_urls_controller.rb",
-      "line": 6,
+      "line": 12,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
       "code": "redirect_to(ShortUrl.find_by!(:slug => params[:slug]).original_url, :allow_other_host => true)",
       "render_path": null,
@@ -23,5 +42,6 @@
       ],
       "note": "Intentional behavior for a URL shortener. Stored destinations are normalized to HTTP/HTTPS before persistence."
     }
-  ]
+  ],
+  "brakeman_version": "8.0.4"
 }
