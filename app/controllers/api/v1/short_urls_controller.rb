@@ -30,7 +30,15 @@ module Api
         render json: {
           slug: record.slug,
           original_url: record.original_url,
-          visits: record.visits
+          visits: record.visits,
+          analytics: record.analytics.order(visited_at: :desc).map do |analytic|
+            {
+              city: analytic.city,
+              country: analytic.country,
+              user_agent: analytic.user_agent,
+              visited_at: analytic.visited_at
+            }
+          end
         }, status: :ok
       end
 
